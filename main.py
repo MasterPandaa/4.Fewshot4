@@ -1,14 +1,15 @@
-import pygame
 import random
 import sys
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
+
+import pygame
 
 # ----------------------
 # Game Configuration
 # ----------------------
 WIN_WIDTH = 600
 WIN_HEIGHT = 740
-PLAY_WIDTH = 300   # 10 columns * 30 px
+PLAY_WIDTH = 300  # 10 columns * 30 px
 PLAY_HEIGHT = 600  # 20 rows * 30 px
 BLOCK_SIZE = 30
 
@@ -60,11 +61,14 @@ SHAPE_COLORS = {
 COLS = 10
 ROWS = 20
 
+
 # ----------------------
 # Helper classes and functions
 # ----------------------
 class Piece:
-    def __init__(self, x: int, y: int, shape: List[Tuple[int, int]], color: Tuple[int, int, int]):
+    def __init__(
+        self, x: int, y: int, shape: List[Tuple[int, int]], color: Tuple[int, int, int]
+    ):
         # Grid coordinates for pivot
         self.x = x
         self.y = y
@@ -80,7 +84,7 @@ class Piece:
             # O shape does not change on rotation, but keep list copy
             return list(offsets)
         result = []
-        for (x, y) in offsets:
+        for x, y in offsets:
             rx, ry = x, y
             for _ in range(r):
                 rx, ry = ry, -rx
@@ -90,12 +94,14 @@ class Piece:
     def block_positions(self) -> List[Tuple[int, int]]:
         # Convert to grid positions
         positions = []
-        for (dx, dy) in self.rotated_offsets():
+        for dx, dy in self.rotated_offsets():
             positions.append((self.x + dx, self.y + dy))
         return positions
 
 
-def create_grid(locked: Dict[Tuple[int, int], Tuple[int, int, int]]) -> List[List[Tuple[int, int, int]]]:
+def create_grid(
+    locked: Dict[Tuple[int, int], Tuple[int, int, int]],
+) -> List[List[Tuple[int, int, int]]]:
     grid = [[BLACK for _ in range(COLS)] for _ in range(ROWS)]
     for (x, y), color in locked.items():
         if 0 <= y < ROWS and 0 <= x < COLS:
@@ -104,8 +110,10 @@ def create_grid(locked: Dict[Tuple[int, int], Tuple[int, int, int]]) -> List[Lis
 
 
 def valid_space(piece: Piece, grid: List[List[Tuple[int, int, int]]]) -> bool:
-    accepted_positions = {(x, y) for y in range(ROWS) for x in range(COLS) if grid[y][x] == BLACK}
-    for (x, y) in piece.block_positions():
+    accepted_positions = {
+        (x, y) for y in range(ROWS) for x in range(COLS) if grid[y][x] == BLACK
+    }
+    for x, y in piece.block_positions():
         if x < 0 or x >= COLS or y >= ROWS:
             return False
         if (x, y) not in accepted_positions:
@@ -114,7 +122,7 @@ def valid_space(piece: Piece, grid: List[List[Tuple[int, int, int]]]) -> bool:
 
 
 def check_lost(locked: Dict[Tuple[int, int], Tuple[int, int, int]]) -> bool:
-    for (x, y) in locked:
+    for x, y in locked:
         if y < 0 or y == 0:
             return True
     return False
@@ -137,7 +145,10 @@ def convert_shape_format(piece: Piece) -> List[Tuple[int, int]]:
     return piece.block_positions()
 
 
-def clear_rows(grid: List[List[Tuple[int, int, int]]], locked: Dict[Tuple[int, int], Tuple[int, int, int]]) -> int:
+def clear_rows(
+    grid: List[List[Tuple[int, int, int]]],
+    locked: Dict[Tuple[int, int], Tuple[int, int, int]],
+) -> int:
     cleared = 0
     for y in range(ROWS - 1, -1, -1):
         if BLACK not in grid[y]:
@@ -167,8 +178,10 @@ def draw_text_middle(surface, text, size, color):
 
     surface.blit(
         label,
-        (TOP_LEFT_X + PLAY_WIDTH / 2 - label.get_width() / 2,
-         TOP_LEFT_Y + PLAY_HEIGHT / 2 - label.get_height() / 2),
+        (
+            TOP_LEFT_X + PLAY_WIDTH / 2 - label.get_width() / 2,
+            TOP_LEFT_Y + PLAY_HEIGHT / 2 - label.get_height() / 2,
+        ),
     )
 
 
@@ -199,7 +212,7 @@ def draw_next_shape(piece: Piece, surface):
     surface.blit(label, (sx, sy - 40))
 
     # Draw the shape in a small box
-    for (dx, dy) in piece.rotated_offsets():
+    for dx, dy in piece.rotated_offsets():
         x = sx + (dx + 1) * BLOCK_SIZE
         y = sy + (dy + 1) * BLOCK_SIZE
         pygame.draw.rect(surface, piece.color, (x, y, BLOCK_SIZE, BLOCK_SIZE), 0)
@@ -222,7 +235,9 @@ def draw_window(surface, grid, score, lines_cleared):
     surface.blit(lines_label, (TOP_LEFT_X - 170, TOP_LEFT_Y + 40))
 
     # Playfield frame
-    pygame.draw.rect(surface, WHITE, (TOP_LEFT_X, TOP_LEFT_Y, PLAY_WIDTH, PLAY_HEIGHT), 3)
+    pygame.draw.rect(
+        surface, WHITE, (TOP_LEFT_X, TOP_LEFT_Y, PLAY_WIDTH, PLAY_HEIGHT), 3
+    )
 
     # Draw blocks
     for y in range(ROWS):
@@ -232,12 +247,22 @@ def draw_window(surface, grid, score, lines_cleared):
                 pygame.draw.rect(
                     surface,
                     color,
-                    (TOP_LEFT_X + x * BLOCK_SIZE, TOP_LEFT_Y + y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
+                    (
+                        TOP_LEFT_X + x * BLOCK_SIZE,
+                        TOP_LEFT_Y + y * BLOCK_SIZE,
+                        BLOCK_SIZE,
+                        BLOCK_SIZE,
+                    ),
                 )
                 pygame.draw.rect(
                     surface,
                     GREY,
-                    (TOP_LEFT_X + x * BLOCK_SIZE, TOP_LEFT_Y + y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
+                    (
+                        TOP_LEFT_X + x * BLOCK_SIZE,
+                        TOP_LEFT_Y + y * BLOCK_SIZE,
+                        BLOCK_SIZE,
+                        BLOCK_SIZE,
+                    ),
                     1,
                 )
 
@@ -324,13 +349,13 @@ def main(win):
         shape_pos = convert_shape_format(current_piece)
 
         # Add piece to grid for drawing
-        for (x, y) in shape_pos:
+        for x, y in shape_pos:
             if y >= 0:
                 grid[y][x] = current_piece.color
 
         # If piece locked
         if change_piece:
-            for (x, y) in shape_pos:
+            for x, y in shape_pos:
                 if y < 0:
                     run = False
                     break
